@@ -94,3 +94,17 @@ v-list-item-content span p{
 v-list-item-content span div{
     padding-left: 20px;
 }
+
+
+.green-row {
+    background-color: #dff0d8;
+}
+
+.green-row:hover {
+    background-color: #d2ebc7;
+}
+
+.tag-chip {
+    margin-right: 2px;
+    background-color: #dff0d8;
+}

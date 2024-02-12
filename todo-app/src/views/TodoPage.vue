@@ -14,9 +14,20 @@
         @update:page="onPageChange"
     >
       <template v-slot:item="{ item }">
-        <tr>
+        <tr :class="{ 'green-row': item.checked }">
           <td>{{ item.title }}</td>
           <td>{{ item.description }}</td>
+          <td>{{ item.dueDateDisplay }}</td>
+          <td style="text-align: center;">
+            <v-icon
+                size="small"
+                class="me-2"
+                @click="editPriority(item)"
+                :color="item.priority == 1 ? '#dc3545' : '#ffc107'"
+            >
+              {{ item.priority == 1 ? 'mdi-chevron-double-up' : 'mdi-chevron-up'}}
+            </v-icon>
+          </td>
           <td>
             <v-icon
                 size="small"
@@ -28,10 +39,18 @@
             </v-icon>
             <v-icon
                 size="small"
+                class="me-2"
                 @click="deleteItem(item)"
                 color="rgb(200, 35, 51)"
             >
               mdi-delete
+            </v-icon>
+            <v-icon
+                size="small"
+                @click="toggleCheck(item)"
+                color="rgb(40,167,69)"
+            >
+              {{item.checked ? 'mdi-checkbox-marked' : 'mdi-crop-square'}}
             </v-icon>
           </td>
         </tr>
@@ -43,6 +62,32 @@
     <v-form ref="form" @submit.prevent="submitForm">
       <v-text-field type="text" id="title" v-model="formData.title" :rules="[v => !!v || 'Bitte Titel eingeben']" required label="Titel"></v-text-field>
       <v-text-field type="text" id="description" v-model="formData.description" :rules="[v => !!v || 'Bitte Beschreibung eingeben']" required label="Beschreibung"></v-text-field>
+      <v-text-field type="datetime-local" id="dueDate" v-model="formData.dueDate" :rules="[v => !!v || 'Bitte Fälligkeitsdatum eingeben', v => validateDueDate(v) || 'Das Datum darf nicht vor dem aktuellen Datum liegen']" required label="Fälligkeitsdatum"></v-text-field>
+      <v-select
+          v-model="formData.priority"
+          label="Priorität"
+          :items="priorityOptions"
+          item-title="label"
+          item-value="value"
+      ></v-select>
+      <v-chip
+          v-for="(tag, index) in tagsDisplay"
+          :key="index"
+          closable
+          @click:close="removeTag(index)"
+          class="tag-chip"
+      >
+        {{ tag }}
+      </v-chip>
+      <div style="display: flex;">
+        <v-text-field
+            v-model="newTag"
+            label="Neuer Tag"
+        ></v-text-field>
+        <v-col cols="auto">
+          <v-btn density="compact" icon="mdi-plus" color="rgb(40,167,69)" @click="addNewTag()"></v-btn>
+        </v-col>
+      </div>
       <div style="clear: both"></div>
       <div>
         <v-btn type="submit" class="text-none mb-4 right-btn" color="#2196F3">Speichern</v-btn>
@@ -62,6 +107,8 @@ export default {
       headers: [
         { title: 'Titel', value: 'title' },
         { title: 'Beschreibung', value: 'description' },
+        { title: 'Fälligkeitsdatum', value: 'dueDate' },
+        { title: 'Priorität', value: 'priority' },
         { title: 'Aktionen', key: 'actions' },
       ],
       itemsPerPage: 5,
@@ -70,15 +117,21 @@ export default {
       selectedTodo: false,
       formData: {
         title: '',
-        description: ''
+        description: '',
+        userId: 0,
+        checked: false,
+        priority: 1,
+        tags: []
       },
+      tagsDisplay: [],
       success: false,
       failed: false,
       deleteSuccess: false,
       deleteFailed: false,
       showAlert: false,
       myId: null,
-      assignedUserIds: []
+      priorityOptions: [],
+      newTag: ''
     }
   },
   name: 'TodoPage',
@@ -96,6 +149,12 @@ export default {
           this.todos = response.data.filter(o => o.userId == this.myId);
           console.log(this.todos);
           this.totalTodos = Number(response.headers['x-total-count']);
+          this.todos.forEach(o => {
+            o.dueDateDisplay = this.formatDate(o.dueDate);
+            const dateTime = new Date(o.dueDate);
+            const localTime = new Date(dateTime.getTime() - dateTime.getTimezoneOffset() * 60000);
+            o.dueDate = localTime.toISOString().slice(0, 16);
+          });
           this.todos.actions = '';
           this.loading = false;
         })
@@ -103,6 +162,15 @@ export default {
           console.error('Error fetching data:', error);
           this.loading = false;
         });
+    },
+    formatDate(dateString) {
+      if (!dateString) {
+        return '';
+      }
+      const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      let formattedDate = new Date(dateString).toLocaleDateString('de-DE', options);
+      formattedDate = formattedDate.replace(/[,]/g, ' ');
+      return formattedDate;
     },
     onPageChange(page) {
       this.$router.push({ query: { page } });
@@ -115,10 +183,44 @@ export default {
       this.selectedTodo = true;
       let todo = this.todos.find(o => o.id === item.id);
       this.formData = {...todo};
-      this.createdByMyUser = todo.userId === this.myId;
+      for (let i = 0; i < this.formData.tags.length; i++) {
+        this.tagsDisplay.push(this.formData.tags[i]);
+      }
+    },
+    toggleCheck(item) {
+      console.log(item);
+      let todo = this.todos.find(o => o.id === item.id);
+      this.formData = {...todo};
+      this.formData.checked = !item.checked;
+      this.updateTodo();
+    },
+    editPriority(item) {
+      let todo = this.todos.find(o => o.id === item.id);
+      this.formData = {...todo};
+      this.formData.priority = item.priority === 1 ? 2 : 1;
+      this.updateTodo();
+    },
+    validateDueDate(date) {
+      const selectedDate = new Date(date);
+      const currentDate = new Date();
+      return selectedDate >= currentDate;
+    },
+    addTag(tag) {
+      this.tagsDisplay.push(tag);
+      this.formData.tags.push(tag);
+    },
+    removeTag(index) {
+      console.log(index);
+      this.formData.tags.splice(index, 1);
+    },
+    addNewTag() {
+      if (this.newTag.trim() !== '') {
+        this.addTag(this.newTag.trim());
+        this.newTag = '';
+      }
     },
     async deleteItem(item) {
-      const userConfirmed = window.confirm("Sind Sie sicher, dass Sie dieses Event löschen möchten?");
+      const userConfirmed = window.confirm("Sind Sie sicher, dass Sie dieses Todo löschen möchten?");
       if (!userConfirmed) {
         return;
       }
@@ -147,8 +249,12 @@ export default {
       this.selectedTodo = false;
       this.formData = {
         title: '',
-        description: ''
+        description: '',
+        checked: false,
+        priority: 1,
+        tags: []
       };
+      this.tagsDisplay = [];
       this.fetchData();
     },
     async submitForm() {
@@ -157,6 +263,7 @@ export default {
       if (isFormValid.valid) {
       try {
         let response;
+        this.formData.userId = this.myId;
         if (this.formData.id) {
           response = await this.$axios.put(BASE_URL + '/' + this.formData.id, this.formData, {
             params: {}
@@ -184,6 +291,37 @@ export default {
       }
       }
     },
+    async updateTodo() {
+      this.resetAlert();
+      try {
+        let response;
+        this.formData.userId = this.myId;
+        if (this.formData.id) {
+          response = await this.$axios.put(BASE_URL + '/' + this.formData.id, this.formData, {
+            params: {}
+          });
+        } else {
+          response = await this.$axios.post(BASE_URL, this.formData, {
+            params: {}
+          });
+        }
+        if (response) {
+          this.success = true;
+          this.showAlert = true;
+          setTimeout(() => {
+            this.showAlert = false;
+          },2000);
+          this.cancelForm();
+          this.fetchData();
+        }
+      } catch (error) {
+        this.failed = true;
+        this.showAlert = true;
+        setTimeout(() => {
+          this.showAlert = false;
+        },2000);
+      }
+    },
     resetAlert() {
       this.success = false;
       this.failed = false;
@@ -199,6 +337,10 @@ export default {
   created() {
     console.log("TodoPage");
     this.myId = store.state.auth.id;
+    this.priorityOptions = [
+      { value: 1, label: 'Hoch' },
+      { value: 2, label: 'Niedrig' }
+    ];
     this.fetchData();
   },
 }

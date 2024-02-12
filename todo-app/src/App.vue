@@ -5,7 +5,6 @@
         <v-row align="center" justify="space-between">
           <v-col>
             <router-link to="/todos" class="nav-link">Todos</router-link>
-            <router-link to="/users" class="nav-link">Benutzer</router-link>
             <button @click="logout" class="button button--primary button_navigation nav-link right-btn">Logout</button>
           </v-col>
         </v-row>
