@@ -66,11 +66,11 @@ export default {
           .then(users => {
             if (users.length > 0) {
               const loggedInUser = users[0];
-              console.log('Erfolgreich angemeldet als:', loggedInUser.username);
               this.loginSuccess = true;
               store.state.auth.loggedIn = true;
               store.state.auth.username = loggedInUser.username;
               store.state.auth.id = loggedInUser.id;
+              store.commit('auth/setJWT');
               setTimeout(() => {
                 this.$router.push('/todos');
               }, 500);

@@ -357,6 +357,7 @@ export default {
       { value: 2, label: 'Niedrig' }
     ];
     this.fetchData();
+    console.log(store.state.auth.loggedIn);
   },
 }
 </script>
