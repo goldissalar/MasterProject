@@ -4,6 +4,12 @@
   <v-alert v-if="deleteSuccess && showAlert" type="success">Löschen erfolgreich!</v-alert>
   <v-alert v-if="deleteFailed && showAlert" type="error">Löschen fehlgeschlagen!</v-alert>
   <v-container v-if="!selectedTodo">
+    <h1 style="padding-bottom: 20px">Meine Todos</h1>
+    <v-text-field
+        v-model="searchTerm"
+        label="Suche"
+        @input="searchTodos"
+    ></v-text-field>
     <v-data-table
         :items="todos"
         :headers="headers"
@@ -59,6 +65,7 @@
     <v-btn class="text-none mb-4 create-btn" color="#2196F3" @click="createTodo()">Erstellen</v-btn>
   </v-container>
   <v-container v-if="!!selectedTodo">
+    <h1 style="padding-bottom: 20px">{{ formData.id ? 'Todo bearbeiten' : 'Todo erstellen'}}</h1>
     <v-form ref="form" @submit.prevent="submitForm">
       <v-text-field type="text" id="title" v-model="formData.title" :rules="[v => !!v || 'Bitte Titel eingeben']" required label="Titel"></v-text-field>
       <v-text-field type="text" id="description" v-model="formData.description" :rules="[v => !!v || 'Bitte Beschreibung eingeben']" required label="Beschreibung"></v-text-field>
@@ -105,10 +112,10 @@ export default {
     return {
       todos: [],
       headers: [
-        { title: 'Titel', value: 'title' },
-        { title: 'Beschreibung', value: 'description' },
-        { title: 'Fälligkeitsdatum', value: 'dueDate' },
-        { title: 'Priorität', value: 'priority' },
+        { title: 'Titel', value: 'title', sortable: true },
+        { title: 'Beschreibung', value: 'description', sortable: true },
+        { title: 'Fälligkeitsdatum', value: 'dueDate', sortable: true },
+        { title: 'Priorität', value: 'priority', sortable: true },
         { title: 'Aktionen', key: 'actions' },
       ],
       itemsPerPage: 5,
@@ -131,7 +138,8 @@ export default {
       showAlert: false,
       myId: null,
       priorityOptions: [],
-      newTag: ''
+      newTag: '',
+      searchTerm: ''
     }
   },
   name: 'TodoPage',
@@ -147,7 +155,6 @@ export default {
         }
       }).then(response => {
           this.todos = response.data.filter(o => o.userId == this.myId);
-          console.log(this.todos);
           this.totalTodos = Number(response.headers['x-total-count']);
           this.todos.forEach(o => {
             o.dueDateDisplay = this.formatDate(o.dueDate);
@@ -188,7 +195,6 @@ export default {
       }
     },
     toggleCheck(item) {
-      console.log(item);
       let todo = this.todos.find(o => o.id === item.id);
       this.formData = {...todo};
       this.formData.checked = !item.checked;
@@ -210,13 +216,23 @@ export default {
       this.formData.tags.push(tag);
     },
     removeTag(index) {
-      console.log(index);
       this.formData.tags.splice(index, 1);
     },
     addNewTag() {
       if (this.newTag.trim() !== '') {
         this.addTag(this.newTag.trim());
         this.newTag = '';
+      }
+    },
+    searchTodos() {
+      if (this.searchTerm.trim() === '') {
+        this.fetchData();
+      } else {
+        this.todos = this.todos.filter(todo =>
+            todo.title.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+            todo.description.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+            todo.tags.some(tag => tag.toLowerCase().includes(this.searchTerm.toLowerCase()))
+        );
       }
     },
     async deleteItem(item) {
@@ -335,7 +351,6 @@ export default {
     },
   },
   created() {
-    console.log("TodoPage");
     this.myId = store.state.auth.id;
     this.priorityOptions = [
       { value: 1, label: 'Hoch' },
