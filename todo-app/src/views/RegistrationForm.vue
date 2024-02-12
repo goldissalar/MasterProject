@@ -11,7 +11,7 @@
           <v-form ref="form">
             <v-text-field type="text" id="username" v-model="formData.username" :rules="[rules.required]" label="Benutzername"></v-text-field>
             <v-text-field type="password" id="password" v-model="formData.password" :rules="[rules.required]" label="Passwort"></v-text-field>
-            <v-btn color="#2196F3" dark block @click="submitForm">Registrieren</v-btn>
+            <v-btn color="#008000" dark block @click="submitForm">Registrieren</v-btn>
           </v-form>
         </v-card>
       </v-col>

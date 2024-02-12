@@ -39,7 +39,7 @@
                 size="small"
                 class="me-2"
                 @click="editTodo(item)"
-                color="#2196F3"
+                color="#008000"
             >
               mdi-pencil
             </v-icon>
@@ -62,7 +62,7 @@
         </tr>
       </template>
     </v-data-table>
-    <v-btn class="text-none mb-4 create-btn" color="#2196F3" @click="createTodo()" style="margin-top: 10px">Erstellen</v-btn>
+    <v-btn class="text-none mb-4 create-btn" color="#008000" @click="createTodo()" style="margin-top: 10px">Erstellen</v-btn>
   </v-container>
   <v-container v-if="!!selectedTodo">
     <h1 style="padding-bottom: 20px">{{ formData.id ? 'Todo bearbeiten' : 'Todo erstellen'}}</h1>
@@ -97,7 +97,7 @@
       </div>
       <div style="clear: both"></div>
       <div>
-        <v-btn type="submit" class="text-none mb-4 right-btn" color="#2196F3">Speichern</v-btn>
+        <v-btn type="submit" class="text-none mb-4 right-btn" color="#008000">Speichern</v-btn>
         <v-btn class="text-none mb-4 left-btn" color="#757575" @click="cancelForm()">Abbrechen</v-btn>
       </div>
     </v-form>

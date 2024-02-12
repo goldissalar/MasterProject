@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="#2196F3" dark v-if="loggedIn">
+    <v-app-bar app color="#008000" dark v-if="loggedIn">
       <v-container>
         <v-row align="center" justify="space-between">
           <v-col>
@@ -10,7 +10,7 @@
         </v-row>
       </v-container>
     </v-app-bar>
-    <v-app-bar app color="#2196F3" dark v-if="!loggedIn">
+    <v-app-bar app color="#008000" dark v-if="!loggedIn">
       <v-container>
         <v-row align="center" justify="space-between">
           <v-col>
