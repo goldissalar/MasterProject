@@ -24,7 +24,7 @@
           <td>{{ item.title }}</td>
           <td>{{ item.description }}</td>
           <td>{{ item.dueDateDisplay }}</td>
-          <td style="text-align: center;">
+          <td>
             <v-icon
                 size="small"
                 class="me-2"
@@ -62,7 +62,7 @@
         </tr>
       </template>
     </v-data-table>
-    <v-btn class="text-none mb-4 create-btn" color="#2196F3" @click="createTodo()">Erstellen</v-btn>
+    <v-btn class="text-none mb-4 create-btn" color="#2196F3" @click="createTodo()" style="margin-top: 10px">Erstellen</v-btn>
   </v-container>
   <v-container v-if="!!selectedTodo">
     <h1 style="padding-bottom: 20px">{{ formData.id ? 'Todo bearbeiten' : 'Todo erstellen'}}</h1>

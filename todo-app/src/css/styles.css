@@ -108,3 +108,42 @@ v-list-item-content span div{
     margin-right: 2px;
     background-color: #dff0d8;
 }
+
+@media screen and (max-width: 800px) {
+    table {
+        margin-top: 0;
+    }
+    .v-data-table thead {
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+
+    .v-data-table td {
+        border-bottom: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+        display: block;
+        line-height: 48px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .v-data-table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+    }
+
+    .v-data-table td:last-child {
+        border-bottom: 0;
+    }
+
+    .v-data-table tr:not(:first-child) > td:first-child {
+        border-top: 2px solid #808080;
+    }
+}
